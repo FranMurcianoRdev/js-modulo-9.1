@@ -1,6 +1,6 @@
 import { LineaTicket, ResultadoLineaTicket, ResultadoTotalTicket, TicketFinal, TipoIva, TotalPorTipoIva } from "./modelo";
 
-// Definir las tasas de IVA correspondientes
+// Definir las tasas de IVA correspondientes para cada tipo de IVA
 const ivaRates: { [key in TipoIva]: number } = {
   "general": 21,
   "reducido": 10,
@@ -21,40 +21,51 @@ const calcularPrecioConIva = (precioSinIva: number, iva: number): number => {
   return parseFloat((precioSinIva + iva).toFixed(2));
 };
 
-// Función para procesar cada línea del ticket
-const procesarLineaTicket = (linea: LineaTicket): ResultadoLineaTicket => {
-  const { producto, cantidad } = linea;
-  const { nombre, precio, tipoIva } = producto;
-  const precioSinIva = parseFloat((precio * cantidad).toFixed(2));
-  const iva = calcularIva(precioSinIva, tipoIva);
-  const precioConIva = calcularPrecioConIva(precioSinIva, iva);
-
-  return {
-    nombre,
-    cantidad,
-    precioSinIva,
-    tipoIva,
-    precioConIva,
-  };
-};
-
-// Función para calcular el total y el desglose del IVA
-const calcularTotales = (lineas: ResultadoLineaTicket[]): { total: ResultadoTotalTicket; desgloseIva: TotalPorTipoIva[] } => {
+// Función principal para calcular el ticket usando un bucle `for`
+export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
+  const resultado: ResultadoLineaTicket[] = [];
   let totalSinIva = 0;
   let totalConIva = 0;
   let totalIva = 0;
+
+  // Objeto para acumular el desglose del IVA por tipo
   const desgloseIva: { [key in TipoIva]?: number } = {};
 
-  for (const linea of lineas) {
-    totalSinIva += linea.precioSinIva;
-    totalConIva += linea.precioConIva;
-    const iva = linea.precioConIva - linea.precioSinIva;
+  // Recorrer cada línea del ticket usando un bucle `for`
+  for (let i = 0; i < lineasTicket.length; i++) {
+    const linea = lineasTicket[i];
+    const { producto, cantidad } = linea;
+    const { nombre, precio, tipoIva } = producto;
+
+    // Calcular el precio sin IVA para la cantidad especificada
+    const precioSinIva = parseFloat((precio * cantidad).toFixed(2));
+
+    // Calcular el IVA correspondiente
+    const iva = calcularIva(precioSinIva, tipoIva);
+
+    // Calcular el precio con IVA
+    const precioConIva = calcularPrecioConIva(precioSinIva, iva);
+
+    // Añadir el resultado de la línea al array de resultado
+    resultado.push({
+      nombre,
+      cantidad,
+      precioSinIva,
+      tipoIva,
+      precioConIva,
+    });
+
+    // Acumular los totales
+    totalSinIva += precioSinIva;
+    totalConIva += precioConIva;
     totalIva += iva;
 
-    desgloseIva[linea.tipoIva] ??= 0;
-    desgloseIva[linea.tipoIva]! += iva;
+    // Acumular el desglose del IVA por tipo
+    desgloseIva[tipoIva] ??= 0;
+    desgloseIva[tipoIva]! += iva;
   }
 
+  // Convertir el objeto desgloseIva en un array de TotalPorTipoIva
   const totalDesgloseIva: TotalPorTipoIva[] = Object.entries(desgloseIva).map(
     ([tipoIva, cuantia]) => ({
       tipoIva: tipoIva as TipoIva,
@@ -62,26 +73,17 @@ const calcularTotales = (lineas: ResultadoLineaTicket[]): { total: ResultadoTota
     })
   );
 
+  // Crear el objeto ResultadoTotalTicket con los totales calculados
+  const resultadoTotalTicket: ResultadoTotalTicket = {
+    totalSinIva: parseFloat(totalSinIva.toFixed(2)),
+    totalConIva: parseFloat(totalConIva.toFixed(2)),
+    totalIva: parseFloat(totalIva.toFixed(2)),
+  };
+
+  // Devolver el resultado final con las líneas del ticket, el total y el desglose del IVA
   return {
-    total: {
-      totalSinIva: parseFloat(totalSinIva.toFixed(2)),
-      totalConIva: parseFloat(totalConIva.toFixed(2)),
-      totalIva: parseFloat(totalIva.toFixed(2)),
-    },
+    lineas: resultado,
+    total: resultadoTotalTicket,
     desgloseIva: totalDesgloseIva,
   };
 };
-
-// Función principal para calcular el ticket
-export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
-  const resultado = lineasTicket.map(procesarLineaTicket);
-  const { total, desgloseIva } = calcularTotales(resultado);
-
-  return {
-    lineas: resultado,
-    total,
-    desgloseIva,
-  };
-};
-
-
