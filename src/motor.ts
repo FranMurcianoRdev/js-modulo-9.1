@@ -10,28 +10,25 @@ const ivaRates: { [key in TipoIva]: number } = {
   "sinIva": 0,
 };
 
-// Función para calcular el IVA de un producto
+// Para calcular el IVA de un producto
 const calcularIva = (precioSinIva: number, tipoIva: TipoIva): number => {
   const tasaIva = ivaRates[tipoIva];
   return parseFloat((precioSinIva * tasaIva / 100).toFixed(2));
 };
 
-// Función para calcular el precio con IVA de un producto 
+// Para sumar el IVA calculado al precio del producto 
 const calcularPrecioConIva = (precioSinIva: number, iva: number): number => {
   return parseFloat((precioSinIva + iva).toFixed(2));
 };
 
-// Función principal para calcular el ticket
 export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
   const resultado: ResultadoLineaTicket[] = [];
   let totalSinIva = 0;
   let totalConIva = 0;
   let totalIva = 0;
 
-  // Para acumular el desglose del IVA por tipo
   const desgloseIva: { [key in TipoIva]?: number } = {};
 
-  // Recorrer cada línea del ticket 
   for (let i = 0; i < lineasTicket.length; i++) {
     const linea = lineasTicket[i];
     const { producto, cantidad } = linea;
@@ -46,7 +43,7 @@ export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
     // Calcular el precio sumándole el IVA
     const precioConIva = calcularPrecioConIva(precioSinIva, iva);
 
-    // Añadir el resultado de la línea al array de resultado
+    // Añadir el resultado
     resultado.push({
       nombre,
       cantidad,
@@ -65,7 +62,7 @@ export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
     desgloseIva[tipoIva]! += iva;
   }
 
-  // Convertir el objeto desgloseIva en un array de TotalPorTipoIva
+  // Convertir el desgloseIva en TotalPorTipoIva
   const totalDesgloseIva: TotalPorTipoIva[] = Object.entries(desgloseIva).map(
     ([tipoIva, cuantia]) => ({
       tipoIva: tipoIva as TipoIva,
@@ -73,14 +70,13 @@ export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
     })
   );
 
-  // Crear el objeto ResultadoTotalTicket con los totales calculados
+  // Crear ResultadoTotalTicket con los totales calculados
   const resultadoTotalTicket: ResultadoTotalTicket = {
     totalSinIva: parseFloat(totalSinIva.toFixed(2)),
     totalConIva: parseFloat(totalConIva.toFixed(2)),
     totalIva: parseFloat(totalIva.toFixed(2)),
   };
 
-  // Devolver el resultado final con las líneas del ticket, el total y el desglose del IVA
   return {
     lineas: resultado,
     total: resultadoTotalTicket,

@@ -1,7 +1,6 @@
 import { LineaTicket } from './modelo';
 import {calculaTicket} from './motor'
 
-// Ejemplo de uso
 const productos: LineaTicket[] = [
     {
         producto: {
