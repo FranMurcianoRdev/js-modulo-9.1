@@ -10,28 +10,28 @@ const ivaRates: { [key in TipoIva]: number } = {
   "sinIva": 0,
 };
 
-// Función para calcular el IVA de un precio sin IVA
+// Función para calcular el IVA de un producto
 const calcularIva = (precioSinIva: number, tipoIva: TipoIva): number => {
   const tasaIva = ivaRates[tipoIva];
   return parseFloat((precioSinIva * tasaIva / 100).toFixed(2));
 };
 
-// Función para calcular el precio con IVA
+// Función para calcular el precio con IVA de un producto 
 const calcularPrecioConIva = (precioSinIva: number, iva: number): number => {
   return parseFloat((precioSinIva + iva).toFixed(2));
 };
 
-// Función principal para calcular el ticket usando un bucle `for`
+// Función principal para calcular el ticket
 export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
   const resultado: ResultadoLineaTicket[] = [];
   let totalSinIva = 0;
   let totalConIva = 0;
   let totalIva = 0;
 
-  // Objeto para acumular el desglose del IVA por tipo
+  // Para acumular el desglose del IVA por tipo
   const desgloseIva: { [key in TipoIva]?: number } = {};
 
-  // Recorrer cada línea del ticket usando un bucle `for`
+  // Recorrer cada línea del ticket 
   for (let i = 0; i < lineasTicket.length; i++) {
     const linea = lineasTicket[i];
     const { producto, cantidad } = linea;
@@ -43,7 +43,7 @@ export const calculaTicket = (lineasTicket: LineaTicket[]): TicketFinal => {
     // Calcular el IVA correspondiente
     const iva = calcularIva(precioSinIva, tipoIva);
 
-    // Calcular el precio con IVA
+    // Calcular el precio sumándole el IVA
     const precioConIva = calcularPrecioConIva(precioSinIva, iva);
 
     // Añadir el resultado de la línea al array de resultado
